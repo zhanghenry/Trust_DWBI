@@ -17,29 +17,14 @@ having sum(t.f_balance_eot) <> 0;
 
 --分行实际收入
 with temp_fdsrc as
- (select row_number() over(partition by c.c_proj_code order by b.c_fdsrc_code,case
-           when b.c_fdsrc_code like
-                '11%' and
-                d.c_inst_name =
-                '交通银行' then
-            '1直投'
-           when b.c_fdsrc_code like
-                '12%' and
-                d.c_inst_name =
-                '交通银行' then
-            '2理财'
-           else
-            '3其他'
-         end desc) as l_rn,
+ (select row_number() over(partition by c.c_proj_code order by b.c_fdsrc_code,
+		case when b.c_fdsrc_code like '11%' and d.c_inst_name = '交通银行' then '1直投' 
+			 when b.c_fdsrc_code like '12%' and d.c_inst_name = '交通银行' then '2理财'
+			 else '3其他' end desc) as l_rn,
          c.c_proj_code,
-         case
-           when b.c_fdsrc_code like '11%' and d.c_inst_name = '交通银行' then
-            '1直投'
-           when b.c_fdsrc_code like '12%' and d.c_inst_name = '交通银行' then
-            '2理财'
-           else
-            '3其他'
-         end as c_fdsrc_name
+         case when b.c_fdsrc_code like '11%' and d.c_inst_name = '交通银行' then '1直投'
+			  when b.c_fdsrc_code like '12%' and d.c_inst_name = '交通银行' then '2理财'
+           else '3其他' end as c_fdsrc_name
     from tt_tc_fdsrc_proj_m   a,
          dim_tc_fund_source   b,
          dim_pb_project_basic c,
