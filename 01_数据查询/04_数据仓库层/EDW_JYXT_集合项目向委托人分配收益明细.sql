@@ -61,6 +61,16 @@ select *
    and trim(a.c_cust_name) = trim(b.c_subj_name)
  where a.c_cust_name is null;
 
+--无法对应合同委托人但属于自然人的收益
+select b.c_year, sum(b.f_amount)
+  from temp_20170112_1 a
+  full outer join temp_20170112_2 b
+    on a.l_proj_id = b.l_proj_id
+   and trim(a.c_cust_name) = trim(b.c_subj_name)
+ where a.c_cust_name is null
+   and length(b.c_subj_name) <= 6
+ group by b.c_year;
+ 
 --按项目按委托人类型按年统计应付收益
 select a.c_proj_code,
        a.c_proj_name,
