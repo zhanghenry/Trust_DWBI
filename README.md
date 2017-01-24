@@ -10,7 +10,7 @@
 
 [百度](http://www.baidu.com/ "标题")
 
-![ETL流程](/tree/master/99_素材/01_信托数据仓库ETL流程.png "ETL")
+![ETL流程](https://github.com/zhanghenry/Trust_DWBI/blob/master/99_素材/01_信托数据仓库ETL流程.png "ETL")
 
 --超链接图片
 ![baidu](http://www.baidu.com/img/bdlogo.gif "百度logo")
