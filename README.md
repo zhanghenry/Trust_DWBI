@@ -8,7 +8,9 @@
 +  数据应用.
 +  数据治理.
 
-[百度](http://www.baidu.com/ "标题").
+[百度](http://www.baidu.com/ "标题")
+
+![ETL流程](/tree/master/99_素材/01_信托数据仓库ETL流程.png "ETL")
 
 --超链接图片
 ![baidu](http://www.baidu.com/img/bdlogo.gif "百度logo")
