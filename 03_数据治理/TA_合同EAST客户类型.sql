@@ -16,7 +16,7 @@ select b.c_tano         as 理财账号,
          where a.l_serialno = c.l_serialno
            and c.c_eastcusttype = '0');
 
---非银行委托人（名字包含银行或合作社的），资金来源是银行理财或银行自有的		   
+--非银行委托人（名字包含银行或合作社的），资金来源是银行理财或银行自有的
 select b.c_tano         as 理财账号,
        b.c_clientname   as 委托人姓名,
        b.c_clientkind   as 委托人类型,
