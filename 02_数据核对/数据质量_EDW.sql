@@ -78,12 +78,13 @@ select t1.c_proj_code   as 项目编码,
 order by t1.l_setup_date;
 								   
 --TA和FA规模比较
---基于流水表
 select t1.c_proj_code   as 项目编码,
        t1.c_proj_name   as 项目名称,
        t1.l_setup_date  as 成立日期,
        t1.f_balance_agg as TA规模,
-       t2.f_balance_agg as FA规模
+       t2.f_balance_agg as FA规模,
+       t2.c_proj_code   as 项目编码,
+       t2.c_proj_name   as 项目名称
   from (select b.l_proj_id,
                b.c_proj_code,
                b.c_proj_name,
@@ -95,7 +96,7 @@ select t1.c_proj_code   as 项目编码,
          where a.l_proj_id = b.l_proj_id
            and a.l_scatype_id = c.l_scatype_id
            and C.C_SCATYPE_CLASS = 'XTHTGM'
-           and a.l_change_date <= 20170105
+           and a.l_change_date <= 20170303 --and b.c_proj_code = 'F658'
            and B.L_CY_ID = 1
          group by b.l_proj_id, b.c_proj_code, b.c_proj_name, b.l_setup_date) t1
   full outer join (select d.l_proj_id,
@@ -111,14 +112,14 @@ select t1.c_proj_code   as 项目编码,
                       and a.l_book_id = c.l_book_id
                       and c.l_proj_id = d.l_proj_id
                       and b.c_subj_code like '4001%'
-                      and a.l_busi_date <= 20170105
-                      and d.L_CY_ID = 1
+                      and a.l_busi_date <= 20170303
+                      and d.L_CY_ID = 1 --and d.c_proj_code = 'F658'
                     group by d.l_proj_id,
                              d.c_proj_code,
                              d.c_proj_name,
                              d.l_setup_date) t2
     on t1.l_proj_id = t2.l_proj_id
- where t1.f_balance_agg <> t2.f_balance_agg
+ where nvl(t1.f_balance_agg, 0) <> nvl(t2.f_balance_agg, 0)
  order by t1.l_setup_date;
  
 --TA、FA、AM规模比较
