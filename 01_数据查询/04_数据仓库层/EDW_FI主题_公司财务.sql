@@ -18,7 +18,7 @@ select b.c_dept_code,
    and a.l_object_id = b.l_dept_id
    and b.l_effective_flag = 1
    and a.l_subj_id = c.l_subj_id
-   and c.c_subj_code like '6601%'
+   and (c.c_subj_code like '6601%' or c.c_subj_code = '642101')
    and a.l_busi_date between 20160101 and 20161231
  group by b.c_dept_code, b.c_dept_name
  order by b.c_dept_code, b.c_dept_name; 
