@@ -1,95 +1,195 @@
---资金运用明细表
-select * from(
-with temp_invest as
- (select t1.l_cont_id,
-         sum(t1.f_invest_agg) as f_invest_agg,
-         sum(t1.f_return_agg) as f_return_agg,
-         sum(t1.f_balance_agg) as f_balance_agg,
-         sum(t1.f_income_agg) as f_income_agg
-    from tt_ic_invest_cont_d t1
-   where t1.l_day_id = 20161130
-   group by t1.l_cont_id)
-select b.c_proj_code as 项目编码,
-       b.c_name_full as 项目名称,
-       a.c_cont_code as 合同编码,
-       a.c_cont_name as 合同名称,
-       d.c_dept_name as 业务部门,
-       c.c_manage_type_n as 管理职责,
-       c.c_proj_type_n as 项目类型,
-       c.c_func_type_n as 功能分类,
-       e.f_balance_agg as 投资余额,
-       e.f_return_agg as 累计还本,
-       a.l_begin_date as 合同起始日,
-       a.l_expiry_date as 合同终止日,
-       f.c_party_name as 交易对手,
-       a.c_real_party as 实质交易对手,
-       a.c_group_party as 集团交易对手,
-       decode(b.f_trustpay_rate,null,null,to_char(b.f_trustpay_rate,'0.0000')) as 信托报酬率,
-       a.c_invest_indus_n as 资金实质投向,
-       g.c_area_name as 实质资金运用地,
-       a.f_cost_rate as 投融资成本,
-       a.l_xzhz_flag as 是否信政合作,
-       c.c_special_type_n as 特殊业务标识,
-       a.c_exit_way_n as 资金实质用途及退出,
-       decode(a.l_invown_flag, 1, '是') as 是否投资公司自有产品
-  from dim_ic_contract      a,
-       dim_pb_project_basic b,
-       dim_pb_project_biz   c,
-       dim_pb_department    d,
-       temp_invest          e,
-       dim_ic_counterparty  f,
-       dim_pb_area          g 
-  where a.l_proj_id = b.l_proj_id
+--资金运用明细底表
+with temp_cont_scale as (
+select t.l_month_id,
+       a.l_cont_id,
+       b.l_prod_id,
+       b.l_proj_id,
+       sum(t.f_balance_agg) f_agg,
+       sum(decode(trunc(b.l_setup_date / 10000), 2016, t.f_balance_agg, t.f_invest_eot)) f_inc_eot,
+       sum(t.f_return_agg) f_dec_agg
+  from tt_ic_invest_cont_m t, dim_ic_contract a, dim_pb_product b
+ where t.l_cont_id = a.l_cont_id
+   and a.l_prod_id = b.l_prod_id
+   and t.l_month_id =
+       to_char(To_Date('31-12-2016', 'dd-mm-yyyy'), 'yyyymm')
+   and a.l_effective_date <= 20161231
+   and a.l_expiration_date > 20161231
+ group by t.l_month_id, a.l_cont_id, b.l_prod_id, b.l_proj_id),
+temp_zc_fa as (
+select distinct t1.l_prod_id,
+                t1.fa_balance,
+                t1.tz_balance,
+                t2.ta_balance,
+                tz_balance_xd,
+                (case when nvl(t1.tz_balance, 0) - nvl(t2.ta_balance, 0) = 0 then '是' else  '否' end) as f_equal
+  from (select b.l_prod_id,
+               sum(case when c.c_subj_code_l1 = '4001' and c.c_subj_code_l2 <> '400100' then t.f_balance_agg else 0 end) as fa_balance,
+               sum(case when c.c_subj_code_l1 in ('1101', '1111', '1303', '1501', '1503', '1531', '1541', '1122', '1511') then t.f_balance_agg else 0 end) as tz_balance,
+               sum(case when c.c_subj_code_l1 in ('1303') then t.f_balance_agg else 0 end) as tz_balance_xd
+          from tt_to_accounting_subj_m t,
+               dim_to_book             a,
+               dim_pb_product          b,
+               dim_to_subject          c
+         where t.l_book_id = a.l_book_id
+           and a.l_prod_id = b.l_prod_id
+           and t.l_subj_id = c.l_subj_id
+           and substr(c.l_Effective_Date, 1, 6) <= t.l_month_id
+           and substr(c.l_expiration_date, 1, 6) > t.l_month_id
+           and t.l_month_id =
+               to_char(To_Date('31-12-2016', 'dd-mm-yyyy'), 'yyyymm')
+         group by b.l_prod_id) t1,
+       (select a.l_prod_id,
+               sum(a.f_agg) over(partition by a.l_proj_id) as ta_balance
+          from temp_cont_scale a) t2
+ where t1.l_prod_id = t2.l_prod_id)
+select h.c_book_code as "账套编号(FA)",
+       c.c_proj_code as "项目编号(TCMP)",
+       c.c_name_full as "项目名称(TCMP)",
+       i.c_dept_name as "业务部门(TCMP)",
+       d.c_manage_type_n as "管理类型(TCMP)",
+       d.c_proj_type_n as "项目类型(TCMP)",
+       d.c_func_type_n as "功能分类(BULU)",
+       d.c_invest_indus_n"项目实质投向(BULU)",
+       to_date(c.l_setup_date, 'yyyymmdd') as "项目开始日期(TCMP)",
+       to_date(c.l_expiry_date, 'yyyymmdd') as "项目终止日期(TCMP)",
+       to_date(c.l_preexp_date, 'yyyymmdd') as "项目预计到期(TCMP)",
+       case
+         when nvl(substr(c.l_expiry_date, 1, 6), 209912) > 201612 then
+          '存续'
+         else
+          '清算'
+       end as "项目状态(TCMP)",
+       decode(d.l_pool_flag, 0, '否', 1, '是', null) as "是否资金池(BULU)",
+       decode(d.c_special_type, 'A', '是', '否') as "普惠金融(TCMP)",
+       decode(d.l_pitch_flag, 0, '否', 1, '是', null) as "是否场内场外(TCMP)",
+       a.c_cont_code as "合同代码(AM)",
+       a.c_cont_name as "合同名称(AM)",
+       to_date(a.l_begin_date, 'yyyymmdd') as "合同起始日(AM)",
+       to_date(a.l_expiry_date, 'yyyymmdd') as "合同终止日(AM)",
+       a.c_busi_type_n as "合同类型(AM)",
+       a.c_invest_indus_n as "合同实质投向(BULU)",
+       a.c_real_party as "实质交易对手(BULU)",
+       g.c_party_name as "合同交易对手(AM)",
+       a.c_invest_way_n as "投资方式(BULU)",
+       a.c_fduse_way_n as "资金用途及退出方式(BULU)",
+       f.c_indus_name as "投资行业(BULU)",
+       e.c_prov_name as "资金运用省份(BULU)",
+       e.c_city_name as "资金运用城市(BULU)",
+       a.f_cost_rate as "融资成本(AM)",
+       decode(d.l_pitch_flag, 0, t1.f_agg, 1, t2.tz_balance, 0) as "投资合同规模",
+       t1.f_inc_eot as "本年新增规模",
+       t1.f_dec_agg as "累计返本",
+       count(a.c_cont_code) over(partition by h.c_book_code),
+       round(t2.tz_balance / count(a.c_cont_code)
+             over(partition by h.c_book_code),
+             2) as "FA投资规模",
+       t2.f_equal as "是否与FA一致",
+       null as "合作伙伴(BULU)",
+       null as "是否签署类战略合作协议(BULU)",
+       null as "非证券投资行业(BULU)",
+       null as "非证券投资方式(BULU)",
+       null as "公司战略业务(BULU)",
+       null as "PPP财政收入(BULU)",
+       null as "PPP项目属性(BULU)",
+       null as "PPP项目主导方(BULU)",
+       null as "PPP主要还款来源(BULU)",
+       null as "不动产类型(BULU)",
+       null as "绿色信托类型(BULU)",
+       null as "普惠金融服务商(BULU)",
+       null as "普惠金融业务类型(BULU)"
+  from temp_cont_scale             t1 ,
+       temp_zc_fa                  t2 ,
+       dim_ic_contract             a ,
+       dim_pb_product              b ,
+       dim_pb_project_basic        c ,
+       dim_pb_project_biz          d ,
+       dim_pb_area                 e ,
+       dim_pb_industry             f ,
+       dim_ic_counterparty         g ,
+       dim_to_book                 h ,
+       dim_pb_department           i
+ where t1.l_prod_id = t2.l_prod_id (+)
+   and t1.l_cont_id = a.l_cont_id
+   and a.l_prod_id = b.l_prod_id
    and b.l_proj_id = c.l_proj_id
-   and b.l_dept_id = d.l_dept_id
-   and a.l_cont_id = e.l_cont_id(+)
-   and a.l_party_id = f.l_party_id(+)
-   and a.l_fduse_area = g.l_area_id(+)
-   and a.l_effective_flag = 1) temp_am
---and a.c_real_party like '%美凯龙%'
---and b.l_proj_id = 1893
---and a.c_cont_code = 'DK11609C'
---order by b.l_setup_date desc, b.c_proj_code
-union all
-select * from (
-with temp_fa as (select to2.l_proj_id,sum(to1.f_balance_agg) as f_balance_agg 
-from tt_to_operating_book_d to1,dim_to_book to2 
-where to1.l_book_id = to2.l_book_id 
-and to2.l_effective_flag = 1 
-and to1.l_day_id = 20161130
-group by to2.l_proj_id)
-select t1.c_proj_code as 项目编号,
-       t1.c_name_full as 项目名称,
-       null as 合同编码,
-       null as 合同名称,
-       t4.c_dept_name as 业务部门,
-       t2.c_manage_type_n as 管理职责,
-       t2.c_proj_type_n as 项目类型,
-       t2.c_func_type_n as 功能分类,
-       t3.f_balance_agg as 投资余额,
-       null as 累计还本,
-       t1.l_setup_date as 合同起始日,
-       t1.l_expiry_date as 合同终止日,
-       null as 交易对手,
-       null as 实质交易对手,
-       null as 集团交易对手,
-       decode(t1.f_trustpay_rate,
-              null,
-              null,
-              to_char(t1.f_trustpay_rate, '0.0000')) as 项目信托报酬率,
-       null as 资金实质投向,
-       null as 实质资金运用地,
-       null as 投融资成本,
-       null as 是否信政合作,
-       t2.c_special_type_n as 特殊业务标识,
-       null as 资金实质用途及退出,
-       null as 是否投资公司自有产品
-  from dim_pb_project_basic   t1,
-       dim_pb_project_biz     t2,
-       temp_fa t3,
-       dim_pb_department      t4
- where t1.l_proj_id = t2.l_proj_id
-   and (t2.l_pitch_flag = 1 or t2.c_special_type = 'A') --场内场外业务或者消费类项目
-   and t1.l_effective_flag = 1
-   and t1.l_proj_id = t3.l_proj_id(+)
-   and t1.l_dept_id = t4.l_dept_id) temp_xd;
+   and c.l_proj_id = d.l_proj_id
+   and a.l_fduse_area = e.l_area_id (+)
+   and a.l_invindus_id = f.l_indus_id (+)
+   and a.l_party_id = g.l_party_id (+)
+   and a.l_prod_id = h.l_prod_id (+)
+   and c.l_dept_id = i.l_dept_id (+)
+   and ( nvl( d.c_special_type,'0' ) <> 'A' or nvl(a.c_busi_type ,'0') <> '1' )
+   and substr(c.l_Effective_Date,1,6) <= t1.l_month_id
+   and substr(c.l_expiration_date,1,6) > t1.l_month_id
+ union all
+select max (h.c_book_code ) as "账套编号(FA)" ,
+       max( c.c_proj_code) as "项目编号(TCMP)" ,
+       max( c.c_name_full) as "项目名称(TCMP)" ,
+       max( i.c_dept_name) as "业务部门(TCMP)" ,
+       max( d.c_manage_type_n) as "管理类型(TCMP)" ,
+       max( d.c_proj_type_n) as "项目类型(TCMP)" ,
+       max( d.c_func_type_n) as "功能分类(BULU)" ,
+       max( d.c_invest_indus_n) as "项目实质投向(BULU)" ,
+       to_date (max( c.l_setup_date) ,'yyyymmdd' ) as "项目开始日期(TCMP)" ,
+       to_date (max( c.l_expiry_date) ,'yyyymmdd' ) as "项目终止日期(TCMP)" ,
+       to_date (max( c.l_preexp_date) ,'yyyymmdd' ) as "项目预计到期(TCMP)" ,
+       max( case when nvl( substr ( c.l_expiry_date ,1 , 6), 209912 ) > 201612 then '存续' else '清算' end ) as "项目状态(TCMP)" ,
+       max( decode( d.l_pool_flag ,0 , '否' , 1, '是' , null )) as "是否资金池(BULU)" ,
+       max( decode( d.c_special_type , 'A', '是', '否' )) as "普惠金融(TCMP)" ,
+       max( decode( d.l_pitch_flag, 0 , '否' , 1 , '是' , null )) as "是否场内场外(TCMP)" ,
+       'XEDK' as "合同代码(AM)" ,
+       '小额贷款合同' as "合同名称(AM)" ,
+       to_date (min( a.l_begin_date),'yyyymmdd' ) as "合同起始日(AM)" ,
+       to_date (max( a.l_expiry_date), 'yyyymmdd') as "合同终止日(AM)" ,
+       max( a.c_busi_type_n) as "合同类型(AM)" ,
+       '其他' as "合同实质投向(BULU)" ,
+       '小贷专用对手方方' as "实质交易对手(BULU)" ,
+       '小贷专用对手方方' as "合同交易对手(AM)" ,
+       max( a.c_invest_way_n) as "投资方式(BULU)" ,
+       max( a.c_fduse_way_n) as "资金用途及退出方式(BULU)" ,
+       max( f.c_indus_name) as "投资行业(BULU)" ,
+       max( e.c_prov_name) as "资金运用省份(BULU)" ,
+       max( e.c_city_name) as "资金运用城市(BULU)" ,
+       max( a.f_cost_rate) as "融资成本(AM)" ,
+       sum( t2.tz_balance_xd) as "投资合同规模" ,
+       sum( t1.f_inc_eot) as "本年新增规模" ,
+       sum( t1.f_dec_agg) as "累计返本" ,
+       null,
+       sum( t2.tz_balance_xd) as "FA投资规模",
+       '是' as "是否与FA一致" ,
+       null as "合作伙伴(BULU)" ,
+       null as "是否签署类战略合作协议(BULU)" ,
+       null as "非证券投资行业(BULU)" ,
+       null as "非证券投资方式(BULU)" ,
+       null as "公司战略业务(BULU)" ,
+       null as "PPP财政收入(BULU)" ,
+       null as "PPP项目属性(BULU)" ,
+       null as "PPP项目主导方(BULU)" ,
+       null as "PPP主要还款来源(BULU)" ,
+       null as "不动产类型(BULU)" ,
+       null as "绿色信托类型(BULU)" ,
+       null as "普惠金融服务商(BULU)" ,
+       null as "普惠金融业务类型(BULU)"
+  from temp_cont_scale             t1 ,
+       temp_zc_fa                  t2 ,
+       dim_ic_contract             a ,
+       dim_pb_product              b ,
+       dim_pb_project_basic        c ,
+       dim_pb_project_biz          d ,
+       dim_pb_area                 e ,
+       dim_pb_industry             f ,
+       dim_ic_counterparty         g ,
+       dim_to_book                 h ,
+       dim_pb_department           i
+ where t1.l_prod_id = t2.l_prod_id (+)
+   and t1.l_cont_id = a.l_cont_id
+   and a.l_prod_id = b.l_prod_id
+   and b.l_proj_id = c.l_proj_id
+   and c.l_proj_id = d.l_proj_id
+   and a.l_fduse_area = e.l_area_id (+)
+   and a.l_invindus_id = f.l_indus_id (+)
+   and a.l_party_id = g.l_party_id (+)
+   and a.l_prod_id = h.l_prod_id (+)
+   and c.l_dept_id = i.l_dept_id (+)
+   and d.c_special_type = 'A' and a.c_busi_type = '1'
+ group by c.c_proj_code ;
