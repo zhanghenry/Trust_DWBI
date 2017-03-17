@@ -39,7 +39,8 @@ select ic1.l_proj_id,
        ic1.c_real_party                         as "实质交易对手(BULU)",
        ic2.c_party_name                         as "合同交易对手(AM)",
        ic1.c_invest_way_n                       as "投资方式(BULU)",
-       ic1.c_fduse_way_n                        as "资金用途及退出方式(BULU)",
+       ic1.c_fduse_way_n                        as "资金用途(BULU)",
+       ic1.c_exit_way_n                         as "退出方式(BULU)",
        pb1.c_indus_name                         as "投资行业(BULU)",
        pb2.c_prov_name                          as "资金运用省份(BULU)",
        pb2.c_city_name                          as "资金运用城市(BULU)",
@@ -57,16 +58,22 @@ select ic1.l_proj_id,
        decode(ic1.c_special_type, '5', ic1.c_subspecial_type_n, null) as "绿色信托类型(BULU)",
        ic1.c_servicer                                                 as "普惠金融服务商(BULU)",
        decode(ic1.c_special_type, '1', ic1.c_subspecial_type_n, null) as "普惠金融业务类型(BULU)",
-       ic1.c_gov_level_n                                              as "合作政府级别"
-  from dim_ic_contract ic1,dim_ic_counterparty ic2,dim_pb_industry pb1,dim_pb_area pb2
+       ic1.c_gov_level_n                                              as "合作政府级别",
+       pb2.c_special_type
+  from dim_ic_contract ic1,dim_ic_counterparty ic2,dim_pb_industry pb1,dim_pb_area pb2,dim_pb_project_biz pb2
  where substr(ic1.l_Effective_Date, 1, 6) <= 201612
    and substr(ic1.l_expiration_date, 1, 6) > 201612
    and ic1.l_party_id = ic2.l_party_id(+)
    and ic1.l_invindus_id = pb1.l_indus_id(+)
-   and ic1.l_fduse_area = pb2.l_area_id(+)
-   and ((nvl(ic1.c_special_type, '0') <> 'A' and  ic1.c_busi_type <> '1') or nvl(ic1.c_cont_type,'99') = '99'); --不取小贷且贷款的合同
+   and ic1.l_fduse_area = pb2.l_area_id(+) --and ic1.l_proj_id = 642
+   and ic1.l_proj_id = pb2.l_proj_id(+)
+   --不取小贷且贷款的合同
+   and ((nvl(pb2.c_special_type, '0') = 'A' and  ic1.c_busi_type <> '1') 
+       or (nvl(ic1.c_cont_type,'99') = '99')
+       or (nvl(pb2.c_special_type, '0') <> 'A' )
+   ); 
    
-create or replace view v_ic_invest_cont_m as
+/*create or replace view v_ic_invest_cont_m as
 select t.*,
        nvl（ratio_to_report(t.f_balance_agg)
                  OVER(partition by t.l_month_id, t.l_proj_id),
@@ -87,7 +94,7 @@ select t.*,
            and c.l_month_id = 201612 --and b.l_proj_id = 1715
            and substr(a.l_effective_date, 1, 6) <= c.l_month_id
            and substr(a.l_expiration_date, 1, 6) > c.l_month_id
-         group by c.l_month_id, a.l_cont_id, b.l_prod_id, b.l_proj_id) t;
+         group by c.l_month_id, a.l_cont_id, b.l_prod_id, b.l_proj_id) t;*/
          
 create or replace view v_ic_invest_cont_m as         
 select ic1.l_month_id,
