@@ -1,4 +1,41 @@
------------------------------------------------------------------直投银信-----------------------------------------------------------
+-----------------------------------------------------------------直投银信----------------------------------------------------------
+
+--新增直投个数-本年成立项目中有直投的
+select count(distinct a.l_proj_id) from tt_tc_fdsrc_stage_m a,dim_tc_fund_source b,dim_pb_project_basic c 
+where a.l_fdsrc_id = b.l_fdsrc_id 
+and a.l_proj_id = c.l_proj_Id
+and a.l_month_id = 201705 
+and c.l_setup_date 
+between 20170101 and 20170531
+and b.c_fdsrc_code like '11%';
+
+--新增银信个数—本年成立项目中有银信的
+select count(distinct a.l_proj_id) from tt_tc_fdsrc_stage_m a,dim_tc_fund_source b,dim_pb_project_basic c 
+where a.l_fdsrc_id = b.l_fdsrc_id 
+and a.l_proj_id = c.l_proj_id
+and a.l_month_id = 201705 
+and c.l_setup_date 
+between 20170101 and 20170531
+and b.c_fdsrc_code like '12%';
+
+--新增直投规模—本年成立期次对应的直投规模
+select sum(a.f_increase_eot)/100000000 from tt_tc_fdsrc_stage_m a,dim_tc_fund_source b,dim_sr_stage c 
+where a.l_fdsrc_id = b.l_fdsrc_id
+and a.l_stage_Id = c.l_stage_id
+and a.l_month_id = 201705 
+and c.l_setup_date 
+between 20170101 and 20170531
+and b.c_fdsrc_code like '11%';
+
+--新增银信规模—本年成立期次对应的银信规模
+select sum(a.f_increase_eot)/100000000 from tt_tc_fdsrc_stage_m a,dim_tc_fund_source b,dim_sr_stage c 
+where a.l_fdsrc_id = b.l_fdsrc_id
+and a.l_stage_Id = c.l_stage_id
+and a.l_month_id = 201705 
+and c.l_setup_date 
+between 20170101 and 20170531
+and b.c_fdsrc_code like '12%';
+
 --本年新增银信/直投个数
 select s.c_proj_code,s.c_proj_name,s.l_setup_date,t.c_fdsrc_name,t.c_inst_name
   from (select a.l_proj_id,b.c_fdsrc_name,c.c_inst_name,count(*),sum(a.f_balance_eot) as f_scale
