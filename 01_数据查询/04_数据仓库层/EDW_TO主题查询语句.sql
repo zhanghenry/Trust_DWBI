@@ -76,6 +76,21 @@ select d.c_proj_code,
    and a.l_month_id = 201611
  group by d.c_proj_code, d.c_proj_name;
 
+--交银信托投向行业查询语句
+select c.c_proj_code,sum(decode(b.c_scatype_code,'JCCY',a.f_incurred_agg,0)) as JCCY 
+,sum(decode(b.c_scatype_code,'FDC',a.f_incurred_agg,0)) as FDC 
+,sum(decode(b.c_scatype_code,'ZQ',a.f_incurred_agg,0)) as ZQ 
+,sum(decode(b.c_scatype_code,'JRJG',a.f_incurred_agg,0)) as JRJG 
+,sum(decode(b.c_scatype_code,'GSQY',a.f_incurred_agg,0)) as GSQY 
+,sum(decode(b.c_scatype_code,'QTTXHY',a.f_incurred_agg,0)) as QTTXHY 
+from tt_sr_scale_type_m a,dim_sr_scale_type b,dim_pb_project_basic c
+where a.l_scatype_id = b.l_scatype_id 
+and a.l_proj_id= c.l_proj_id
+and b.c_scatype_class = 'TXHY'
+and nvl(substr(c.L_expiry_date,1,6),209912) > 201703
+and a.l_month_id = 201703 group by c.c_proj_code; 
+ 
+ 
 --估值-资金运用方式
 select d.c_proj_code,
        d.c_proj_name,
