@@ -1,15 +1,86 @@
 -----------------------------------------------------------------存续项目----------------------------------------------------------
---存续规模合计
---基于SR主题
-select sum(a.f_balance_eot)/100000000 
-from tt_sr_scale_proj_m a ,dim_pb_project_biz b ,dim_pb_project_basic c
-where a.l_proj_id = b.l_proj_id and b.l_proj_id = c.l_proj_id
-and a.l_month_id >= substr(c.l_effective_date,1,6)
-and a.l_month_id < substr(c.l_expiration_date, 1,6)
-and a.l_month_id = 201606 
-and nvl(c.l_expiry_date,'20991231') > 20160630;
+--存续规模
+select round(sum(t.f_balance_eot) / 10000, 2)
+  from tt_sr_scale_proj_m t, dim_pb_project_basic s
+ where t.l_proj_id = s.l_proj_id
+   and substr(s.l_effective_date, 1, 6) <= t.l_month_id
+   and substr(s.l_expiration_date, 1, 6) > t.l_month_id
+   and t.l_month_id = 201612;   
+   
+--存续项目规模
+select sum(a.f_balance_eot) / 100000000
+  from tt_sr_scale_proj_m a, dim_pb_project_biz b, dim_pb_project_basic c
+ where a.l_proj_id = b.l_proj_id
+   and b.l_proj_id = c.l_proj_id
+   and a.l_month_id >= substr(c.l_effective_date, 1, 6)
+   and a.l_month_id < substr(c.l_expiration_date, 1, 6)
+   and a.l_month_id = 201612
+   and nvl(c.l_expiry_date, '20991231') > 20161231;
+    
+--存续项目个数/规模，按项目类型
+select b.c_proj_type_n,
+       count(*),
+       sum(a.f_balance_eot)
+  from tt_sr_scale_proj_m    a,
+       dim_pb_project_biz    b,
+       dim_pb_object_status  c,
+       tt_pb_object_status_m d,
+       dim_pb_project_basic  e
+ where a.l_proj_id = b.l_proj_id
+   and b.l_proj_id = d.l_object_id
+   and d.c_object_type = 'XM'
+   and c.l_objstatus_id = d.l_objstatus_id
+   and c.l_exist_tm_flag = 1
+   and b.l_proj_id = e.l_proj_id
+   and a.l_month_id = d.l_month_id
+   and a.l_month_id = 201612
+   and substr(e.l_effective_date,1,6) <= a.l_month_id
+   and substr(e.l_expiration_date,1,6)>a.l_month_id
+ group by b.c_proj_type_n
+ order by b.c_proj_type_n;
 
---项目规模
+--存续项目个数/规模，按功能分类
+select b.c_func_type_n,
+       count(*),
+       sum(a.f_balance_eot)
+  from tt_sr_scale_proj_m    a,
+       dim_pb_project_biz    b,
+       dim_pb_object_status  c,
+       tt_pb_object_status_m d,
+       dim_pb_project_basic  e
+ where a.l_proj_id = b.l_proj_id
+   and b.l_proj_id = d.l_object_id
+   and d.c_object_type = 'XM'
+   and c.l_objstatus_id = d.l_objstatus_id
+   and c.l_exist_tm_flag = 1
+   and b.l_proj_id = e.l_proj_id
+   and a.l_month_id = d.l_month_id
+   and a.l_month_id = 201612
+   and substr(e.l_effective_date,1,6) <= a.l_month_id
+   and substr(e.l_expiration_date,1,6)>a.l_month_id
+ group by b.c_func_type_n
+ order by b.c_func_type_n;
+
+ 
+ 
+--项目事物性质明细
+select b.l_proj_id,
+       b.l_effective_flag,
+       b.l_effective_date,
+       b.c_proj_code,
+       b.c_proj_name,
+       b.l_setup_date,
+       b.l_expiry_date,
+       a.c_proj_type_n,
+       a.c_func_type_n,
+       a.c_affair_props,
+       a.c_affair_props_n
+  from dim_pb_project_biz a, dim_pb_project_basic b
+ where a.l_Proj_id = b.l_proj_id
+   and b.l_effective_flag = 1
+ order by b.c_proj_code, a.l_proj_id;
+
+--部门项目规模
 select d.c_dept_name,
        e.c_emp_name,
        c.c_proj_code,
@@ -30,77 +101,8 @@ select d.c_dept_name,
    and a.l_month_id < substr(c.l_expiration_date, 1, 6)
    and a.l_month_id = 201608
    and nvl(c.l_expiry_date, '20991231') > 20160831
- order by d.c_dept_name, e.c_emp_name, c.c_proj_code, c.c_proj_name;
-
---存续规模核对	
-select s.c_proj_code,round(sum(t.f_balance_eot)/10000,2) from tt_sr_scale_proj_d t,dim_pb_project_basic s 
-where t.l_proj_id = s.l_proj_id and  t.l_day_id = 20161009 group by s.c_proj_code;
-
---存续项目个数，按项目类型，功能分类，事务性质
-select b.c_proj_type,
-       b.c_proj_type_n,
-       b.c_func_type,
-       b.c_func_type_n,
-       b.c_affair_props,
-       b.c_affair_props_n,
-       count(*)
-  from tt_sr_scale_proj_d   a,
-       dim_pb_project_biz   b,
-       dim_sr_project_junk  c,
-       dim_pb_project_basic d
- where a.l_proj_id = b.l_proj_id
-   and b.l_proj_id = d.l_proj_id
-   and a.L_PROJ_JUNK_ID = c.L_PROJ_JUNK_ID
-   and a.l_day_id = 20160831
-   and c.l_exist_flag = 1
- group by b.c_proj_type,
-          b.c_proj_type_n,
-          b.c_func_type,
-          b.c_func_type_n,
-          b.c_affair_props,
-          b.c_affair_props_n
- order by b.c_proj_type, b.c_func_type, b.c_affair_props;
-
---存续项目规模，按项目类型，功能分类事务性质
-select b.c_proj_type,
-       b.c_proj_type_n,
-       b.c_func_type,
-       b.c_func_type_n,
-       b.c_affair_props,
-       b.c_affair_props_n,
-       sum(a.f_balance_eot) / 100000000
-  from tt_sr_scale_proj_m a, dim_pb_project_biz b, dim_pb_project_basic c
- where a.l_proj_id = b.l_proj_id
-   and b.l_proj_id = c.l_proj_id
-   and a.l_month_id = 201608
-   and nvl(c.l_expiry_date, '20991231') > 20160831
-   and a.l_month_id >= substr(c.l_effective_date, 1, 6)
-   and a.l_month_id < substr(c.l_expiration_date, 1, 6)
- group by b.c_proj_type,
-          b.c_proj_type_n,
-          b.c_func_type,
-          b.c_func_type_n,
-          b.c_affair_props,
-          b.c_affair_props_n
- order by b.c_proj_type, b.c_func_type, b.c_affair_props;
-
---项目事物性质明细
-select b.l_proj_id,
-       b.l_effective_flag,
-       b.l_effective_date,
-       b.c_proj_code,
-       b.c_proj_name,
-       b.l_setup_date,
-       b.l_expiry_date,
-       a.c_proj_type_n,
-       a.c_func_type_n,
-       a.c_affair_props,
-       a.c_affair_props_n
-  from dim_pb_project_biz a, dim_pb_project_basic b
- where a.l_Proj_id = b.l_proj_id
-   and b.l_effective_flag = 1
- order by b.c_proj_code, a.l_proj_id;
-
+ order by d.c_dept_name, e.c_emp_name, c.c_proj_code, c.c_proj_name; 
+ 
 --存续项目资金运用方式明细-行
 select c.c_proj_type_n,
        d.c_proj_code,
@@ -149,8 +151,12 @@ round(sum(decode(b.c_scatype_code,'QTZJYYFS',a.f_incurred_agg,0))/10000,2) as f_
 select c.c_proj_type_n,
        d.c_proj_code,
        d.c_proj_name,
-       b.c_scatype_name,
-       sum(f_incurred_agg) as f_scale
+        round(sum(decode(b.c_scatype_code,'JCCY',a.f_incurred_agg,0))/10000,2) as f_jccy,
+        round(sum(decode(b.c_scatype_code,'FDC',a.f_incurred_agg,0))/10000,2) as f_fdc,
+        round(sum(decode(b.c_scatype_code,'ZQ',a.f_incurred_agg,0))/10000,2) as f_zq,
+        round(sum(decode(b.c_scatype_code,'JRJG',a.f_incurred_agg,0))/10000,2) as f_jrjg,
+        round(sum(decode(b.c_scatype_code,'GSQY',a.f_incurred_agg,0))/10000,2) as f_gsqy,
+        round(sum(decode(b.c_scatype_code,'QTTXHY',a.f_incurred_agg,0))/10000,2) as f_qt  
   from tt_sr_scale_type_m   a,
        dim_sr_scale_type    b,
        dim_pb_project_biz   c,
@@ -159,8 +165,8 @@ select c.c_proj_type_n,
    and c.l_proj_id = d.l_proj_id
    and a.l_scatype_id = b.l_scatype_id
    and b.c_scatype_class = 'TXHY'
-   and nvl(d.l_expiry_date, 20991231) > 20160630
-   and a.l_month_id = 201606
+   and nvl(d.l_expiry_date, 20991231) > 20170731
+   and a.l_month_id = 201707
  group by c.c_proj_type_n, d.c_proj_code, d.c_proj_name, b.c_scatype_name
 having sum(f_incurred_agg) > 0
  order by c.c_proj_type_n, d.c_proj_code, d.c_proj_name, b.c_scatype_name;
