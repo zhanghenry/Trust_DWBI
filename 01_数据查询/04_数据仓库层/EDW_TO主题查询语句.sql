@@ -110,6 +110,52 @@ select d.c_proj_code,
    and d.l_effective_flag = 1
    and a.l_month_id = 201611
  group by d.c_proj_code, d.c_proj_name;
+
+--本年终止项目运营明细
+with temp_qs as
+ (select b.c_proj_code, sum(decode(c.l_pool_flag,1,0,a.f_decrease_agg)) as f_qs
+    from tt_tc_scale_cont_m   a,
+         dim_tc_contract      d,
+         dim_pb_project_basic b,
+         dim_pb_project_biz   c
+   where a.l_proj_id = b.l_proj_id
+     and a.l_cont_id = d.l_cont_id
+     and b.l_proj_id = c.l_proj_id
+     and substr(d.l_effective_date, 1, 6) <= 201707
+     and substr(d.l_expiration_date, 1, 6) > 201707
+     and a.l_month_id = 201707
+     --and b.l_expiry_date <= 20170731
+   group by b.c_proj_code)
+select c.c_book_code   as 帐套编码,
+       b.c_proj_code   as 项目编码,
+       b.c_proj_name   as 项目名称,
+       b.l_setup_date  as 项目成立日期,
+       b.l_expiry_date as 项目终止日期,
+       a.f_days_agg    as 项目存续天数,
+       f.f_qs          as 清算规模,
+       a.f_scale_agg   as 实收信托,
+       a.f_scale_ad    as 日均规模,
+       a.f_cost_agg    as 累计信托费用,
+       a.f_income_agg  as 累计受益人收益,
+       a.f_pay_agg     as 累计受托人报酬
+  from tt_to_operating_book_m a,
+       dim_pb_project_basic   b,
+       dim_to_book            c,
+       tt_pb_object_status_m  d,
+       dim_pb_object_status   e,
+       temp_qs                f
+ where a.l_proj_id = b.l_proj_id
+   and a.l_book_id = c.l_book_id
+   and b.l_proj_id = d.l_object_id
+   and d.c_object_type = 'XM'
+   and d.l_objstatus_id = e.l_objstatus_id
+   and e.l_expiry_ty_flag = 1
+   and a.l_month_id = d.l_month_id
+   and b.l_expiry_date <= 20170731
+   and b.l_effective_flag = 1
+   and a.l_month_id = 201707
+   and b.c_proj_code = f.c_proj_code
+ order by b.l_expiry_date;
  
 --本年终止项目运营明细
 select c.c_book_code   as 帐套编码,
@@ -135,11 +181,10 @@ select c.c_book_code   as 帐套编码,
    and d.l_objstatus_id = e.l_objstatus_id
    and e.l_expiry_ty_flag = 1
    and a.l_month_id = d.l_month_id
-   and b.l_effective_flag = 1
-   and a.l_month_id = 201610
--- and c.c_book_code = '100611'
---and nvl(b.l_expiry_date, 20991231) between 20160101 and 20161031
- order by c.c_book_code; 
+   and substr(c.l_effective_date,1,6) <= a.l_month_id
+   and substr(c.l_expiration_date,1,6) > a.l_month_id
+   and a.l_month_id = 201709
+ order by c.c_book_code;
  
 --终止项目按月产生的信托报酬
 select substr(b.l_expiry_date, 1, 6),
