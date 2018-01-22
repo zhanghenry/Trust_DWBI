@@ -1,4 +1,3 @@
---æª÷µº∆À„
 select t2.c_code,
        --t1.d_make,
        sum(case
@@ -43,8 +42,3 @@ select t2.c_code,
  where t1.l_fundid = t2.l_fundid 
  and t1.d_make <= to_date('20110831','yyyymmdd')
  group by t2.c_code;
-
-select * from taccountsets t where t.c_code = 'CA01CH';
-
-select  40674153.32/40600000
-	 from dual;

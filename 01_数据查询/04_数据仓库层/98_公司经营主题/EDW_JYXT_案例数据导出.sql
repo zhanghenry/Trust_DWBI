@@ -1,3 +1,6 @@
+/*
+该数据用于提供给华语报表开发使用，为经过处理的数据
+*/
 --经营指标
 select b.l_month_id,
        a.c_indic_code,
@@ -8,7 +11,7 @@ select b.l_month_id,
  where a.l_indic_id = b.l_indic_id
    and b.l_month_id in(201512,201612)
    order by b.l_month_id,a.c_indic_code;
-   
+
 --新增规模
 --新成立规模，非交易类申购
 --JYXT
@@ -36,7 +39,7 @@ select t.l_month_id,s.c_proj_code,s.c_proj_name,s.l_expiry_date,t.c_fdsrc_name,t
            group by a.l_month_id,a.l_proj_id,b.c_fdsrc_name,c.c_inst_name) t,dim_pb_project_basic s
    where t.l_proj_id = s.l_proj_id 
    order by t.l_month_id,t.c_inst_name,s.c_proj_code;
-   
+
 --银信存续个数规模
 select t.l_month_id,s.c_proj_code,s.c_proj_name,s.l_expiry_date,t.c_fdsrc_name,t.c_inst_name,t.f_scale*round (dbms_random.value(1,1.2),2)
   from (select a.l_month_id,a.l_proj_id,b.c_fdsrc_name,c.c_inst_name,count(*),sum(a.f_balance_eot) as f_scale
