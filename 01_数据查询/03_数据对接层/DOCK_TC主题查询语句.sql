@@ -1,3 +1,18 @@
+--项目存续规模
+select sum(case
+             when a.c_busi_type in ('03', '71', '15') then
+              a.f_trade_share * -1
+             else
+              a.f_trade_share
+           end) as f_share
+  from tta_trust_order a, tde_product b, tde_project c
+ where a.c_prod_code = b.c_prod_code
+   and b.c_proj_code = c.c_proj_code
+   and a.c_order_status = '9'
+   and a.c_busi_type <> '74'
+   and c.c_proj_code = 'AVICTC2013X0045'
+   and a.d_confirm <= to_date('20161231', 'yyyymmdd');
+
 --以信托合同汇总项目存续规模
 select a.*,b.c_invprod_code as 主产品编码,
        b.c_busi_scope as 业务范围,
@@ -67,3 +82,4 @@ select *
         end)<>0) s
  where not exists
  (select 1 from tde_product b where s.c_prod_code = b.c_prod_code);
+ 

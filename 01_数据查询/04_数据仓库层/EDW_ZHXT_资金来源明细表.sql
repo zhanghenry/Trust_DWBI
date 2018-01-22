@@ -4,7 +4,7 @@ with temp_prod_scale as
          sum(t.f_balance_agg) as f_balance_agg,
          sum(t.f_decrease_agg) as f_decrease_agg
     from tt_tc_scale_cont_m t, dim_pb_product t1
-   where t.l_month_id = 201610
+   where t.l_month_id = 201707
      and t.l_prod_id = t1.l_prod_id --and t1.l_prod_id = 1102
      and substr(t1.l_effective_date, 1, 6) <= t.l_month_id
      and substr(t1.l_expiration_date, 1, 6) > t.l_month_id
@@ -18,7 +18,7 @@ temp_prod_revenue as
          nvl(sum(decode(t1.c_ietype_code_l2, 'XTCGF', t.f_planned_agg, 0)),
              0) as f_planned_xtcgf --累计计划财顾费
     from tt_ic_ie_prod_m t, dim_pb_ie_type t1
-   where t.l_month_id = 201610
+   where t.l_month_id = 201707
      and t.l_ietype_id = t1.l_ietype_id
    group by t.l_prod_id),
 temp_benefical_right as
@@ -30,8 +30,8 @@ temp_benefical_right as
 temp_sale_way as
  (select t.l_prod_id, wmsys.wm_concat(distinct t.c_sale_way_n) as c_sale_way
     from dim_tc_contract t
-   where substr(t.l_effective_date, 1, 6) <= 201610
-     and substr(t.l_expiration_date, 1, 6) > 201610
+   where substr(t.l_effective_date, 1, 6) <= 201707
+     and substr(t.l_expiration_date, 1, 6) > 201707
    group by t.l_prod_id),
 temp_ic_rate as
  (select t.l_prod_id,
@@ -98,6 +98,6 @@ select l.c_book_code as 帐套编号,
    and a.l_prod_id = k.l_prod_id(+)
    --and b.c_proj_code = 'AVICTC2016X0247'
    and a.l_prod_id = l.l_prod_id(+)
-   and substr(a.l_effective_date, 1, 6) <= 201610
-   and substr(a.l_expiration_date, 1, 6) > 201610
+   and substr(a.l_effective_date, 1, 6) <= 201707
+   and substr(a.l_expiration_date, 1, 6) > 201707
  order by b.l_setup_date, b.c_proj_code, a.c_prod_code;

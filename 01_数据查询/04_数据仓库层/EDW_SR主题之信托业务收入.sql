@@ -1,3 +1,18 @@
+--信托业务收入按业务范围、项目类型、功能分类、事务性质
+select c.c_busi_scope_n,
+       c.c_proj_type_n,
+       c.c_func_type_n,
+       round(sum(a.f_actual_eot) / 10000, 2)
+  from tt_sr_tstrev_proj_m a, dim_pb_project_basic b, dim_pb_project_biz c
+ where a.l_proj_id = b.l_proj_id
+   and b.l_proj_id = C.L_PROJ_ID
+   and a.l_month_id >= substr(b.l_effective_date, 1, 6)
+   and a.l_month_id < substr(b.l_expiration_date, 1, 6)
+   and a.l_month_id = 201612
+ group by c.c_busi_scope_n, c.c_proj_type_n, c.c_func_type_n
+having round(sum(a.f_planned_eot) / 10000, 2) <> 0
+ order by c.c_busi_scope_n, c.c_proj_type_n, c.c_func_type_n;
+
 --收入整体
 select c.c_proj_code as 项目编码,
        c.c_proj_name as 项目名称,
@@ -109,32 +124,8 @@ select d.c_proj_code,
           c.c_prod_name,
           b.c_ietype_name; 
  
---信托业务收入按业务范围、项目类型、功能分类、事务性质
-select c.c_busi_scope,
-       c.c_busi_scope_n,
-       c.c_proj_type,
-       c.c_proj_type_n,
-       c.c_func_type,
-       c.c_func_type_n,
-       c.c_affair_props,
-       c.c_affair_props_n,
-       round(sum(a.f_actual_eot) / 10000, 2)
-  from tt_sr_tstrev_proj_m a, dim_pb_project_basic b, dim_pb_project_biz c
- where a.l_proj_id = b.l_proj_id
-   and b.l_proj_id = C.L_PROJ_ID
-   and a.l_month_id >= substr(b.l_effective_date, 1, 6)
-   and a.l_month_id < substr(b.l_expiration_date, 1, 6)
-   and a.l_month_id = 201608
- group by c.c_busi_scope,
-          c.c_busi_scope_n,
-          c.c_proj_type,
-          c.c_proj_type_n,
-          c.c_func_type,
-          c.c_func_type_n,
-          c.c_affair_props,
-          c.c_affair_props_n
-having round(sum(a.f_planned_eot) / 10000, 2) <> 0
- order by c.c_busi_scope, c.c_proj_type, c.c_func_type, c.c_affair_props;
+
+
  
 --信托业务收入按项目类型
 select c.c_proj_type_n, sum(a.f_planned_eot) / 10000

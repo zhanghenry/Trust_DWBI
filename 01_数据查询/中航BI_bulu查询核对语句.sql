@@ -1,3 +1,74 @@
+--产品报酬信息
+with temp_rate as
+ (select t1.c_prod_code, min(t1.f_rate) as f_rate
+    from datadock.tam_rate t1
+   where t1.c_ietype_code = 'XTGDBC'
+   group by t1.c_prod_code),
+temp_scale as
+ (select t2.c_prod_code,
+         sum(case
+               when t2.c_busi_type in ('03', '71') then
+                t2.f_trade_share * -1
+               else
+                t2.f_trade_share
+             end) as f_ye,
+         sum(case
+               when t2.c_busi_type in ('03', '71') then
+                t2.f_trade_share
+               else
+                0
+             end) as f_hb
+    from datadock.tta_trust_order t2
+   where t2.c_busi_type not in ('14', '15', '74')
+     and t2.d_confirm <= to_date('20161231', 'YYYYMMDD')
+   group by t2.c_prod_code),
+temp_plan as
+ (select tt3.*,
+         sum(tt3.f_prod_plan) over(partition by tt3.c_proj_code) as f_proj_plan
+    from (select t3.c_proj_code,
+                 t3.c_prod_code,
+                 sum(t3.f_plan) as f_prod_plan
+            from datadock.tam_plan t3
+           where t3.d_plan <= to_date('20161231', 'yyyymmdd')
+             and t3.c_ietype_code = 'XTGDBC'
+           group by t3.c_proj_code, t3.c_prod_code) tt3),
+temp_actual as
+ (select tt4.*,
+         sum(tt4.f_prod_actual) over(partition by tt4.c_proj_code) as f_proj_actual
+    from (select t4.c_proj_code,
+                 t4.c_prod_code,
+                 sum(t4.f_actual) as f_prod_actual
+            from datadock.tam_order t4
+           where t4.d_actual <= to_date('20161231', 'yyyymmdd')
+             and t4.c_ietype_code = 'XTGDBC'
+           group by t4.c_proj_code, t4.c_prod_code) tt4)
+select a.c_prod_code as 产品编码,
+       a.c_prod_name as 产品名称,
+       c.f_ye as 受托余额,
+       c.f_hb as 累计还本,
+       a.d_setup as 产品起始日期,
+       a.d_preexp as 预计到期日期,
+       a.d_expiry 产品终止日期,
+       b.f_rate as 信托报酬率,
+       d.f_prod_plan as 信托报酬,
+       e.f_prod_actual as 累计已支付报酬,
+       (case
+         when d.f_proj_plan < e.f_proj_actual then
+          0
+         else
+          d.f_prod_plan - e.f_prod_actual
+       end) as 尚未支付报酬
+  from datadock.tde_product a,
+       temp_rate            b,
+       temp_scale           c,
+       temp_plan            d,
+       temp_actual          e
+ where a.c_prod_code = b.c_prod_code(+)
+   and a.c_prod_code = c.c_prod_code(+)
+   and a.c_prod_code = d.c_prod_code(+)
+   and a.c_prod_code = e.c_prod_code(+)
+ order by a.d_setup;
+
 select *
   from hstdc.ta_fundinfo a
  where exists
@@ -162,5 +233,14 @@ SELECT NC_FUNDINFO.C_FUNDID_HS,
    and NC_VOUCHERS.C_COMBID = NC_ASITEM.C_COMBID
    and NC_ASITEM.C_CLASSID = NC_ASCLASS.C_CLASSID;
   
-  select * from nc_vouchers a,nc_fundinfo b where a.c_fundid = b.c_fundid;
+select * from nc_vouchers a,nc_fundinfo b where a.c_fundid = b.c_fundid;
 select * from nc_fundinfo;
+
+--项目是否为小贷和场内场外
+select t.L_PITCH_FLAG, t.c_promanageflg
+  from tprojectinfo_bulu t, hstdc.pm_projectinfo s
+ where (t.L_PITCH_FLAG = '1' or t.c_promanageflg = '8')
+   and s.c_projcode = 'AVICTC2016X0638'
+   and t.c_proj_code = s.c_projcode
+   and s.c_projphase <> '99'
+   and s.c_projphase >= 30;

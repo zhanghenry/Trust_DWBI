@@ -31,3 +31,18 @@ select null as 帐套编号,
    and substr(a.l_effective_date, 1, 6) <= e.l_month_id
    and substr(a.l_expiry_date, 1, 6) > e.l_month_id
    and e.l_month_id = 201609;
+
+--新增合同收入
+select d.c_proj_code, d.c_proj_name, sum(a.f_planned_agg)/10000
+  from tt_ic_ie_prod_m      a,
+       dim_pb_ie_type       b,
+       dim_pb_ie_status     c,
+       dim_pb_project_basic d
+ where a.l_ietype_id = b.l_ietype_id
+   and a.l_iestatus_id = c.l_iestatus_id
+   and a.l_proj_id = d.l_proj_id
+   and c.c_iestatus_code = 'NEW'
+   and a.l_month_id = 201612
+   and substr(d.l_effective_date, 1, 6) <= a.l_month_id
+   and substr(d.l_expiration_date, 1, 6) > a.l_month_id
+ group by d.c_proj_code, d.c_proj_name;
