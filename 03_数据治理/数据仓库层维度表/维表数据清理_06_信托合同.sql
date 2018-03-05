@@ -16,7 +16,7 @@ select a.c_cont_code,
  group by a.c_cont_code, a.l_expiration_date
 having count(*) > 1;
 
---情况3：部门生效日期大于失效日期
+--情况3：合同生效日期大于失效日期
 select *
   from dataedw.dim_tc_contract a
  where a.l_effective_date >= a.l_expiration_date;
@@ -96,14 +96,14 @@ select t1.l_count, t.*
  where t.c_cont_code = t1.c_cont_code
    and t.l_effective_date > t.l_expiration_date
    and t.l_alltransfer_flag = 0;
-   
+
 update dim_tc_contract t
    set t.l_effective_date = t.l_begin_date
  where t.l_cont_id in (select t.l_cont_id
                          from dim_tc_contract t
                         where t.l_effective_date > t.l_expiration_date
                           and t.l_alltransfer_flag = 1);
-                          
+
 select * from dim_tc_contract t where t.c_cont_code in( '257546','257478','246111');
 
 --合同有效且开始日期小于生效日期

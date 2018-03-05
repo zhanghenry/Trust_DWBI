@@ -18,8 +18,6 @@ select b.c_dept_code,
    and a.c_proj_code = c.c_proj_code
    and b.c_dept_cate not in ('01', '03', '05', '07');
 
-
-
 --潜在客户数量
 select count(*) as f_value
   from tcr_customer t

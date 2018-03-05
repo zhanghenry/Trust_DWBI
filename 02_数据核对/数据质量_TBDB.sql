@@ -4,6 +4,8 @@ select *
   from pm_projectinfo a
  where (a.d_begdate > a.d_predue or
        a.d_begdate > nvl(a.d_enddate, a.d_begdate));
+       
+select * from pm_projectinfo  t where t.d_predue is null;
 
 --合同有投资金额但没有合同信息
 select a1.*

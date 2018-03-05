@@ -21,10 +21,8 @@ select sum(a.f_loan_amt)
  where a.c_cont_code = b.c_cont_code   
 and a.c_loan_status = '100';
 
-
+select * from tcf_loan_flow t where t.c_loan_status = '100';
    
-   select * from tcf_loan_flow t where t.c_loan_status = '100';
-   
-   select * from tcf_contract t where t.c_cont_code = 'HT201704201000000042191';
+select * from tcf_contract t where t.c_cont_code = 'HT201704201000000042191';
    
 

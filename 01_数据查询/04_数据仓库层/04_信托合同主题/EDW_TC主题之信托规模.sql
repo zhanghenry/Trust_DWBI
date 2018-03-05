@@ -58,3 +58,20 @@ select c_proj_code, c_proj_name, l_period, sum(f_scale)
         )
  group by c_proj_code, c_proj_name, l_period
  order by c_proj_code, c_proj_name, l_period;
+ 
+--清算规模明细
+select a.c_proj_code,
+       sum(case when b.l_pool_flag = 0 and substr(a.l_expiry_date, 1, 6) = t.l_month_id then  t.f_decrease_agg else 0  end) / 100000000 as f_dtot
+  from tt_tc_scale_cont_m   t,
+       dim_tc_contract      x,
+       dim_pb_product       y,
+       dim_pb_project_basic a,
+       dim_pb_project_biz   b
+ where t.l_cont_id = x.l_cont_id
+   and x.l_prod_id = y.l_prod_id
+   and y.l_proj_id = a.l_proj_id
+   and a.l_proj_id = b.l_proj_id
+   and t.l_month_id = 201712
+   and substr(y.l_effective_date, 1, 6) <= t.l_month_id
+   and substr(y.l_expiration_date, 1, 6) > t.l_month_id
+ group by a.c_proj_code having sum(case when b.l_pool_flag = 0 and substr(a.l_expiry_date, 1, 6) = t.l_month_id then  t.f_decrease_agg else 0  end) <> 0;

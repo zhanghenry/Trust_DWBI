@@ -2,7 +2,7 @@
 select case when t.d_begdate is null then '成立日期为空'
             when (t.c_projphase = '99' and t.d_enddate is null) then '项目阶段已经终止但终止日期未维护'
               when (t.d_enddate is null and t.c_projphase <> '99' ) then '项目已终止但阶段不为99'
-                when (nvl(t.d_enddate,to_date('20991231','yyyymmdd')) < t.d_begdate) then '结束日期小于成立日期'
+            when (nvl(t.d_enddate,to_date('20991231','yyyymmdd')) < t.d_begdate) then '结束日期小于成立日期'
                   end as 异常,
        t.c_projcode as 项目编码,
        t.c_fullname as 项目名称,
