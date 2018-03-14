@@ -13,7 +13,7 @@ select b.c_proj_code as c_grain,b.c_proj_name ,round(sum(a.f_balance_agg)/10000,
    and b.l_proj_id = c.l_proj_id
    and substr(d.l_effective_date, 1, 6) <= a.l_month_id
    and substr(d.l_expiration_date, 1, 6) > a.l_month_id
-   and a.l_month_id = 201712
+   and a.l_month_id = 201802
  group by b.c_proj_code,b.c_proj_name;
 
 truncate table temp_20180222_04;
@@ -28,13 +28,13 @@ select t3.c_proj_code,
        dataedw.dim_pb_ie_type       t1,
        dataedw.dim_pb_product       t2,
        dataedw.dim_pb_project_basic t3
- where t.l_month_id = 201712
+ where t.l_month_id = 201802
    and t.l_ietype_id = t1.l_ietype_id
    and t.l_prod_id = t2.l_prod_id
    and t2.l_proj_id = t3.l_proj_id
    and substr(t2.l_effective_date, 1, 6) <= t.l_month_id
    and substr(t2.l_expiration_date, 1, 6) > t.l_month_id
-   and (t3.l_expiry_date > 20171231 or t3.l_expiry_date is null)
+   and (t3.l_expiry_date > 20180231 or t3.l_expiry_date is null)
  group by t3.c_proj_code, t3.c_proj_name;
 
 truncate table temp_20180222_06;
@@ -52,7 +52,7 @@ a.c_proj_name,
    and x.l_prod_id = y.l_prod_id
    and y.l_proj_id = a.l_proj_id
    and a.l_proj_id = b.l_proj_id
-   and t.l_month_id = 201712
+   and t.l_month_id = 201802
    and substr(y.l_effective_date, 1, 6) <= t.l_month_id
    and substr(y.l_expiration_date, 1, 6) > t.l_month_id
    and substr(a.l_expiry_date, 1, 4) = substr(t.l_month_id,1,4)
@@ -63,10 +63,10 @@ drop table temp_20180222_08;
 create table temp_20180222_08 as 
 select t1.c_object_code as c_proj_code
   from dataedw.tt_pb_object_status_m t1, dataedw.dim_pb_object_status t2
- where t1.l_month_id = 201712
+ where t1.l_month_id = 201802
    and t1.l_objstatus_id = t2.l_objstatus_id
    and t1.c_object_type = 'XM'
-   and t2.l_setup_ty_flag = 1 and t1.l_object_id = 3308;
+   and t2.l_setup_ty_flag = 1 /*and t1.l_object_id = 3308*/;
 
 select * from dataedw.dim_pb_project_basic t where t.c_proj_code = 'AVICTC2017X0860';
 select * from dataedw.tt_pb_object_status_m t where t.l_object_id = 3308 and t.c_object_type = 'XM';

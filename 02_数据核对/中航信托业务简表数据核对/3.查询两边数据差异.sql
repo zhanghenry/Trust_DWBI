@@ -4,11 +4,11 @@ select t1.c_proj_code,
        t2.c_grain,
        t2.c_proj_name,
        t2.f_value as BI存续规模,
-       t1.f_cxgm - t2.f_value as 差值
+       nvl(t1.f_cxgm,0) - nvl(t2.f_value,0) as 差值
   from temp_20180222_01 t1
   full outer join temp_20180222_02 t2
     on t1.c_proj_code = t2.c_grain
- where t1.f_cxgm <> t2.f_value;
+ where nvl(t1.f_cxgm,0) <> nvl(t2.f_value,0);
 
 --计划收入差异
 select t1.c_proj_code,
@@ -43,10 +43,10 @@ select t1.c_proj_code,
        t2.c_proj_code  
        from temp_20180222_07 t1
   full outer join temp_20180222_08 t2
-    on t1.c_proj_code = t2.c_proj_code
+    on replace(t1.c_proj_code,'
+','') = t2.c_proj_code
  where t1.c_proj_code is null or t2.c_proj_code is null;
 
-select * from temp_20180222_08 t where t.c_proj_code = 'AVICTC2016X0856';
 
 --本年新增规模差异
 select t1.c_proj_code,
