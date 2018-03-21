@@ -55,7 +55,7 @@ a.c_proj_name,
    and t.l_month_id = 201802
    and substr(y.l_effective_date, 1, 6) <= t.l_month_id
    and substr(y.l_expiration_date, 1, 6) > t.l_month_id
-   and substr(a.l_expiry_date, 1, 4) = substr(t.l_month_id,1,4)
+   and substr(a.l_expiry_date, 1, 4) = substr(t.l_month_id,1,4) and substr(a.l_expiry_date, 1, 6) <= t.l_month_id
  group by a.c_proj_code,a.c_proj_name ;
  
 truncate table temp_20180222_08;
@@ -90,5 +90,24 @@ select a17.c_proj_code,a17.c_proj_name, round(sum(a11.F_BALANCE_AGG) / 10000,2) 
  where (SUBSTR(a13.L_EFFECTIVE_DATE, 1, 6) <= a11.L_MONTH_ID and
        SUBSTR(a13.L_EXPIRATION_DATE, 1, 6) > a11.L_MONTH_ID and
        a16.MONTH_DATE = trunc(To_Date('31-12-2017', 'dd-mm-yyyy'), 'mm') and
-       a15.L_POOL_FLAG = 0 and substr(a13.L_SETUP_DATE, 1, 4) = '2017')
+       a15.L_POOL_FLAG = 0 and substr(a13.L_SETUP_DATE, 1, 4) = '2018')
  group by a17.c_proj_code,a17.c_proj_name;
+
+--存续项目个数/规模，按功能分类
+truncate table temp_20180222_12;
+drop table temp_20180222_12;
+create table temp_20180222_12 as  
+select  e.c_proj_code,e.c_proj_name,count(*) as f_gs
+  from dataedw.dim_pb_project_biz    b,
+       dataedw.dim_pb_object_status  c,
+       dataedw.tt_pb_object_status_m d,
+       dataedw.dim_pb_project_basic  e
+ where b.l_proj_id = d.l_object_id
+   and d.c_object_type = 'XM'
+   and c.l_objstatus_id = d.l_objstatus_id
+   and c.l_exist_tm_flag = 1
+   and b.l_proj_id = e.l_proj_id
+   and d.l_month_id = 201802
+   and (e.l_expiry_date > 20180228 or e.l_expiry_date is null)
+   and substr(e.l_effective_date, 1, 6) <= d.l_month_id
+   and substr(e.l_expiration_date, 1, 6) > d.l_month_id group by e.c_proj_code,e.c_proj_name;

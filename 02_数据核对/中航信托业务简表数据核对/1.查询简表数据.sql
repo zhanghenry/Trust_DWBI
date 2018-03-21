@@ -155,7 +155,7 @@ select tp1.c_proj_code,tp3.c_htks
    and tp1.l_row_axis = tp2.l_row_axis
    and tp1.c_file_code = tp3.c_file_code
    and tp1.l_row_axis = tp3.l_row_axis
-   and substr(tp3.c_htks,1,4) = '2017'
+   and substr(tp3.c_htks,1,4) = '2018'
    ) group by c_proj_code;
 
 
@@ -190,7 +190,7 @@ temp_xzgm as
    where (t1.c_item_code, t1.c_file_code, t1.l_column_axis) in
          (select t2.c_item_code, t2.c_file_code, t2.l_column_axis
             from datadock.tsg_file_item t2
-           where t2.c_item_name = '项目实收资本额'
+           where t2.c_item_name = '规模余额'
            and t2.c_file_code  = '业务简表20180228.xls')
      /*and t1.l_row_axis <> 4098*/)
 select tp1.c_proj_code,tp3.c_htks,tp4.f_xzgm

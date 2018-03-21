@@ -10,6 +10,16 @@ select t1.c_proj_code,
     on t1.c_proj_code = t2.c_grain
  where nvl(t1.f_cxgm,0) <> nvl(t2.f_value,0);
 
+--存续项目个数差异
+select t1.c_proj_code,
+       t2.c_proj_code,
+       t2.c_proj_name
+  from temp_20180222_01 t1
+  full outer join temp_20180222_12 t2
+    on t1.c_proj_code = t2.c_proj_code
+ where t1.c_proj_code is null or t2.c_proj_code is null;
+
+
 --计划收入差异
 select t1.c_proj_code,
        t1.f_xtsr as 简表合同收入,
@@ -25,6 +35,15 @@ select t1.c_proj_code,
   full outer join temp_20180222_04 t2
     on t1.c_proj_code = t2.c_proj_code
  where t1.f_xtsr <> t2.f_xtsr;
+ 
+--本年清算个数
+select t1.c_proj_code,
+       t2.c_proj_code,
+       t2.c_proj_name
+  from temp_20180222_05 t1
+  full outer join temp_20180222_06 t2
+    on t1.c_proj_code = t2.c_proj_code
+ where t1.c_proj_code is null or t2.c_proj_code is null; 
  
 --本年清算规模差异
 select t1.c_proj_code,
@@ -46,7 +65,6 @@ select t1.c_proj_code,
     on replace(t1.c_proj_code,'
 ','') = t2.c_proj_code
  where t1.c_proj_code is null or t2.c_proj_code is null;
-
 
 --本年新增规模差异
 select t1.c_proj_code,
