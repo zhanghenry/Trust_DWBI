@@ -56,61 +56,62 @@ from
 ;
 
 --4.2项目资产汇总 
-select 
-null as 日期,
-null as 部门编号,
-null as 部门名称,
-null as 资产总额,
-null as 期初资金,
-null as 期末资金,
-null as 资金余额,
-null as 可用资金,
-null as 可取资金,
-null as 本金,
-null as 期初收入,
-null as 收益率%,
-null as 资金占用,
-null as 买入金额,
-null as 卖出金额,
-null as 净资产,
-null as 冻结金额,
-null as 解冻金额,
-null as 预买金额,
-null as 股票资产,
-null as 基金资产,
-null as 债券资产,
-null as 债券利息,
-null as 新股资产,
-null as 期权资产,
-null as 融资融券负债资产,
-null as 合计,
-null as 正回购,
-null as 逆回购,
-null as 当日融资购回金额，
-null as 当日融券购回金额,
-null as 合计，
-null as 申购冻结,
-null as 配股冻结,
-null as 应收资产,
-null as 当日申购资产,
-null as 合计，
-null as 累计盈亏,
-null as 浮动盈亏，
-null as 股票收益,
-null as 基金收益,
-null as 债券收益,
-null as 回购收益,
-null as 红利收益，
-null as 新股收益,
-null as 存款利息收益，
-null as 合计,
-null as 证券持股比例,
-null as 股票持股比例,
-null as 存款资产,
-null as 其他资产，
-null as 合计
-from 
-;
+select t1.l_date as 日期,
+       null as 部门编号,
+       null as 部门名称,
+       null as 资产总额,
+       t1.en_begin_balance as 期初资金,
+       t1.en_current_balance as 期末资金,
+       t1.en_current_balance as 资金余额,
+       null as 可用资金,
+       null as 可取资金,
+       null as 本金,
+       t1.en_begin_invest as 期初投入,
+       null as 收益率,
+       null as 资金占用,
+       t1.en_buy_balance as 买入金额,
+       t1.en_sale_balance as 卖出金额,
+       t1.en_net_asset as 净资产,
+       t1.en_frozen_balance as 冻结金额,
+       t1.en_unfrozen_balance as 解冻金额,
+       t1.en_prebuy_balance as 预买金额,
+       t1.en_stock_asset as 股票资产,
+       t1.en_fund_asset as 基金资产,
+       t1.en_bond_asset as 债券资产,
+       t1.en_interest_asset as 债券利息,
+       t1.en_newstock_asset as 新股资产,
+       t1.en_futures_asset as 期权资产,
+       (t1.en_rz_asset + t1.en_rq_asset) as 融资融券负债资产,
+       null as 合计,
+       null as 正回购,
+       null as 逆回购,
+       null as 当日融资购回金额,
+       null as 当日融券购回金额,
+       null as 合计,
+       t1.en_sg_asset as 申购冻结,
+       t1.en_pg_asset as 配股冻结,
+       null as 应收资产,
+       null as 当日申购资产,
+       null as 合计,
+       null as 累计盈亏,
+       null as 浮动盈亏,
+       t1.en_stock_profit as 股票收益,
+       t1.en_fund_profit as 基金收益,
+       t1.en_bond_profit as 债券收益,
+       t1.en_hg_profit as 回购收益,
+       t1.en_bond_profit as 红利收益,
+       t1.en_newstock_profit as 新股收益,
+       t1.en_interest_profit as 存款利息收益,
+       null as 合计,
+       null as 证券持股比例,
+       null as 股票持股比例,
+       null as 存款资产,
+       null as 其他资产,
+       null as 合计
+  from projectasset t1
+ where t1.l_project_id = 10457
+   and t1.l_date = 20180614;
+
 
 
 --4.3账号资产汇总
@@ -126,7 +127,7 @@ null as 可用资金,
 null as 可取资金,
 null as 本金,
 null as 期初收入,
-null as 收益率%,
+null as 收益率,
 null as 资金占用,
 null as 买入金额,
 null as 卖出金额,
@@ -146,12 +147,12 @@ null as 正回购,
 null as 逆回购,
 null as 当日融资购回金额，
 null as 当日融券购回金额,
-null as 合计，
+null as 合计,
 null as 申购冻结,
 null as 配股冻结,
 null as 应收资产,
 null as 当日申购资产,
-null as 合计，
+null as 合计,
 null as 累计盈亏,
 null as 浮动盈亏，
 null as 股票收益,
@@ -171,8 +172,54 @@ from
 ;
 
 --4.4证券汇总查询
+--4.4.1公司证券汇总查询
+--4.4.2部门证券汇总查询
+--4.4.3项目证券汇总查询
+--4.4.4
 
 --4.5项目证券账号分布
+--4.5.1项目证券账号分布
+--4.5.2股东证券账号分布
+select t1.l_date as 日期,
+       t1.l_workgroup_id as 资金账号,
+       t4.vc_workgroup_name as 账号简称,
+       t1.vc_stockholder_id as 股东账号,
+       t1.vc_stock_code as 证券代码,
+       t2.vc_stock_name as 证券名称,
+       t1.c_exchange_type as 证券类别,
+       t4.l_depgroup_id as 营业部资金账号,
+       t1.l_current_amount as 持仓量,
+       t1.l_current_amount - t1.l_frozen_amount as 可用量,
+       t1.l_current_amount * t3.en_last_price as 市值,
+       case
+         when t1.l_current_amount = 0 then
+          0
+         else
+          t1.en_untransfered_invest / t1.l_current_amount
+       end as 成本价,
+       t1.en_untransfered_invest as 资金占用,
+       null as 利息成本价,
+       null as 利息成本,
+       (t1.l_current_amount * t3.en_last_price) - t1.en_untransfered_invest as 浮动盈亏,
+       t1.l_frozen_amount as 冻结数量,
+       t1.l_unfrozen_amount as 解冻数量,
+       t1.l_prebuy_amount as 预买数量,
+       t1.l_presale_amount as 预上市数量,
+       t1.vc_bind_seat as 托管席位
+  from hswinhis2 .. groupholderstock t1,
+       hswinhis2 .. stockcodes t2,
+       hswinhis2 .. stockprice t3,
+       hswinrun2 .. workgroup t4
+ where t1.vc_stock_code = t2.vc_stock_code
+   and t1.l_date = t2.l_date
+   and t1.vc_stock_code = t3.vc_stock_code
+   and t1.l_date = t3.l_date
+   and t1.l_workgroup_id = t4.l_workgroup_id
+   and t1.l_workgroup_id = 10457202
+   and t1.l_date = 20180614;
+
+--4.5.3股东证券项目账号分布
+--4.5.4股东证券项目分布
 
 --4.6运行日报
 
@@ -367,6 +414,51 @@ select t1.l_date          as 操作日期,
 --4.17证券冻结查询
 
 --4.18场外查询
+select
+
+from
+groupholderstock
+
+
+--4.25债券持仓查询 
+select 
+null as 日期,
+null as 资金账号,
+null as 账号名称,
+null as 市场类别,
+null as 证券类别,
+null as 证券代码,
+null as 证券名称,
+null as 托管市场,
+null as 持仓数量,
+null as 最新净价,
+null as 当前利息,
+null as 净价市值,
+null as 全价市值,
+null as 到期日,
+null as 票面年利率,
+null as 到期收益率,
+null as 信用综合评级,
+null as 净价成本,
+null as 利息成本,
+null as 全价成本,
+null as 到期天数,
+null as 累计收益,
+null as 净价浮动盈亏,
+null as 全价浮动盈亏,
+null as 浮盈率,
+null as 总盈亏,
+null as 久期,
+null as 利息浮动盈亏,
+null as 利息累计盈亏,
+null as 利息总盈亏,
+null as 起息日期,
+null as 修正久期,
+null as 主体评级,
+null as 债券评级,
+null as 基点价值
+from 
+groupstock t1;
 
 --项目帐号
 select * from projectgroup t where t.l_project_id =  10457;
