@@ -1,16 +1,174 @@
 --4.1部门资产汇总
-
+select 
+null as 日期,
+null as 部门编号,
+null as 部门名称,
+null as 资产总额,
+null as 期初资金,
+null as 期末资金,
+null as 资金余额,
+null as 可用资金,
+null as 可取资金,
+null as 本金,
+null as 期初收入,
+null as 收益率%,
+null as 资金占用,
+null as 买入金额,
+null as 卖出金额,
+null as 净资产,
+null as 冻结金额,
+null as 解冻金额,
+null as 预买金额,
+null as 股票资产,
+null as 基金资产,
+null as 债券资产,
+null as 债券利息,
+null as 新股资产,
+null as 期权资产,
+null as 融资融券负债资产,
+null as 合计,
+null as 正回购,
+null as 逆回购,
+null as 当日融资购回金额，
+null as 当日融券购回金额,
+null as 合计，
+null as 申购冻结,
+null as 配股冻结,
+null as 应收资产,
+null as 当日申购资产,
+null as 合计，
+null as 累计盈亏,
+null as 浮动盈亏，
+null as 股票收益,
+null as 基金收益,
+null as 债券收益,
+null as 回购收益,
+null as 红利收益，
+null as 新股收益,
+null as 存款利息收益，
+null as 合计,
+null as 证券持股比例,
+null as 股票持股比例,
+null as 存款资产,
+null as 其他资产，
+null as 合计
+from 
+;
 
 --4.2项目资产汇总 
+select 
+null as 日期,
+null as 部门编号,
+null as 部门名称,
+null as 资产总额,
+null as 期初资金,
+null as 期末资金,
+null as 资金余额,
+null as 可用资金,
+null as 可取资金,
+null as 本金,
+null as 期初收入,
+null as 收益率%,
+null as 资金占用,
+null as 买入金额,
+null as 卖出金额,
+null as 净资产,
+null as 冻结金额,
+null as 解冻金额,
+null as 预买金额,
+null as 股票资产,
+null as 基金资产,
+null as 债券资产,
+null as 债券利息,
+null as 新股资产,
+null as 期权资产,
+null as 融资融券负债资产,
+null as 合计,
+null as 正回购,
+null as 逆回购,
+null as 当日融资购回金额，
+null as 当日融券购回金额,
+null as 合计，
+null as 申购冻结,
+null as 配股冻结,
+null as 应收资产,
+null as 当日申购资产,
+null as 合计，
+null as 累计盈亏,
+null as 浮动盈亏，
+null as 股票收益,
+null as 基金收益,
+null as 债券收益,
+null as 回购收益,
+null as 红利收益，
+null as 新股收益,
+null as 存款利息收益，
+null as 合计,
+null as 证券持股比例,
+null as 股票持股比例,
+null as 存款资产,
+null as 其他资产，
+null as 合计
+from 
+;
+
 
 --4.3账号资产汇总
-select *
-  from groupasset t
- where t.l_workgroup_id in
-       (select t1.l_workgroup_id
-          from projectgroup t1
-         where t1.l_project_id = 10457);
-
+select 
+null as 日期,
+null as 部门编号,
+null as 部门名称,
+null as 资产总额,
+null as 期初资金,
+null as 期末资金,
+null as 资金余额,
+null as 可用资金,
+null as 可取资金,
+null as 本金,
+null as 期初收入,
+null as 收益率%,
+null as 资金占用,
+null as 买入金额,
+null as 卖出金额,
+null as 净资产,
+null as 冻结金额,
+null as 解冻金额,
+null as 预买金额,
+null as 股票资产,
+null as 基金资产,
+null as 债券资产,
+null as 债券利息,
+null as 新股资产,
+null as 期权资产,
+null as 融资融券负债资产,
+null as 合计,
+null as 正回购,
+null as 逆回购,
+null as 当日融资购回金额，
+null as 当日融券购回金额,
+null as 合计，
+null as 申购冻结,
+null as 配股冻结,
+null as 应收资产,
+null as 当日申购资产,
+null as 合计，
+null as 累计盈亏,
+null as 浮动盈亏，
+null as 股票收益,
+null as 基金收益,
+null as 债券收益,
+null as 回购收益,
+null as 红利收益，
+null as 新股收益,
+null as 存款利息收益，
+null as 合计,
+null as 证券持股比例,
+null as 股票持股比例,
+null as 存款资产,
+null as 其他资产，
+null as 合计
+from 
+;
 
 --4.4证券汇总查询
 
